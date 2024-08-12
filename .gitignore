@@ -1,0 +1,6 @@
+﻿.idea/*
+RtcSignaling/bin/*
+RtcSignaling/obj/*
+RtcSignaling/logs/*
+RtcSignalingTest/obj/*
+RtcSignalingTest/bin/*

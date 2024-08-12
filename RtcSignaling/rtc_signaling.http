@@ -1,0 +1,6 @@
+@rtc_signaling_HostAddress = http://localhost:5258
+
+GET {{rtc_signaling_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
