@@ -1,14 +1,13 @@
-﻿using System.Text;
+﻿using System.Net.WebSockets;
+using System.Text;
 using Serilog;
 
-namespace RtcSignaling.Websocket;
-
-using System.Net.WebSockets;
+namespace RtcSignaling;
 
 public class WebSocketHandler
 {
     private WebSocket? _webSocket = null;
-    private AppContext _appContext;
+    private readonly AppContext _appContext;
     private readonly SignalProcessor _processor;
     private Client? _client = null;
     

@@ -55,7 +55,6 @@ public class ClientManager
     {
         lock (_clientsMutex)
         {
-            var currentTimestamp = Common.GetCurrentTimestamp();
             var toRemoveIds = new List<string>();
             foreach (var pair in _clients)
             {

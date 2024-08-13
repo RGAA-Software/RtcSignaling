@@ -2,7 +2,6 @@
 using System.Text.Json.Nodes;
 using Serilog;
 using Newtonsoft.Json;
-using RtcSignaling.Websocket;
 
 namespace RtcSignaling;
 
@@ -11,8 +10,8 @@ public class SignalProcessor
     private readonly AppContext _context;
     private readonly ClientManager _clientManager;
     private readonly RoomManager _roomManager;
-    private WebSocketHandler _handler;
-    private Client _client;
+    private readonly WebSocketHandler _handler;
+    private readonly Client _client;
     
     public SignalProcessor(AppContext ctx, WebSocketHandler handler)
     {
@@ -47,16 +46,26 @@ public class SignalProcessor
             }
             
             var sigName = jsonObject[SignalMessage.KeySigName].ToString();
-            var token = jsonObject[SignalMessage.KeyToken].ToString();
-            Console.WriteLine("///sigName: " + sigName + ", token: " + token);
+            var token = "";
+            if (jsonObject.TryGetValue(SignalMessage.KeyToken, out var value))
+            {
+                token = value.ToString();   
+            }
+            if (token == null || token.Length <= 0)
+            {
+                var msg = "Token is empty, msg: " + message;
+                Log.Error(msg);
+                Console.WriteLine(msg);
+                //return false;
+            }
             
             if (sigName == SignalMessage.SigNameHello)
             {
                 // hello
                 var allowReSend = false;
-                if (jsonObject.ContainsKey(SignalMessage.KeyAllowReSend))
+                if (jsonObject.TryGetValue(SignalMessage.KeyAllowReSend, out var value1))
                 {
-                    allowReSend = Convert.ToBoolean(jsonObject[SignalMessage.KeyAllowReSend]);
+                    allowReSend = Convert.ToBoolean(value1);
                 }
                 _onSigHelloCbk(new SignalMessage.SigHelloMessage
                 {
@@ -286,7 +295,7 @@ public class SignalProcessor
     {
         if (!IsClientIdOk(msg.ClientId, "CreateRoom")) return;
 
-        var room = _roomManager.CreateRoom(msg.ClientId, msg.RemoteClientId);
+        var room = _roomManager.CreateRoom(msg.Token, msg.ClientId, msg.RemoteClientId);
         _client.Id = msg.ClientId;
         _client.Token = msg.Token;
         _client.Notify(SignalMessage.MakeOnCreatedRoomMessage(msg.Token, msg.ClientId, msg.RemoteClientId, room));

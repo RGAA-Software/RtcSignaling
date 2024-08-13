@@ -1,6 +1,5 @@
 ﻿using System.Net.WebSockets;
 using Newtonsoft.Json;
-using RtcSignaling.Websocket;
 using Serilog;
 
 namespace RtcSignaling;
@@ -54,7 +53,7 @@ public class Client
         }
 
         var backMsg = SignalMessage.MakeOnHeartBeatMessage(msg);
-        Console.WriteLine("OnHeartBeat: " + backMsg);
+        //Console.WriteLine("OnHeartBeat: " + backMsg);
         SendMessage(backMsg);
     }
 

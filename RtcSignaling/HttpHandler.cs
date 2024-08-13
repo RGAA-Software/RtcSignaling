@@ -4,7 +4,7 @@ public class HttpHandler
 {
     private readonly AppContext _context;
     private readonly WebApplication _app;
-    private ClientIdGenerator _idGenerator;
+    private readonly ClientIdGenerator _idGenerator;
     
     public HttpHandler(AppContext ctx, WebApplication app)
     {
@@ -23,7 +23,7 @@ public class HttpHandler
             }); 
         }).WithName("ping");
 
-        _app.MapGet("/request/client/id", async context =>
+        _app.MapGet("/request/client/id", context =>
         {
             string? hardware = context.Request.Query["hardware"];
             string? platform = context.Request.Query["platform"];
@@ -33,9 +33,10 @@ public class HttpHandler
             {
                 {"id", id},
             }));
+            return Task.CompletedTask;
         });
 
-        _app.MapGet("/check/client/online", async context =>
+        _app.MapGet("/check/client/online", context =>
         {
             string clientId = context.Request.Query["client_id"]!;
             var online = _context.GetClientManager().IsClientOnline(clientId);
@@ -44,9 +45,10 @@ public class HttpHandler
                 {"client_id", clientId},
                 {"client_id_online", online},
             }));
+            return Task.CompletedTask;
         });
 
-        _app.MapGet("/check/client/pair/online", async context =>
+        _app.MapGet("/check/client/pair/online", context =>
         {
             string clientId = context.Request.Query["client_id"]!;
             var clientIdOnline = _context.GetClientManager().IsClientOnline(clientId!);
@@ -59,34 +61,48 @@ public class HttpHandler
                 {"remote_client_id", remoteClientId},
                 {"remote_client_id_online", remoteClientIdOnline},
             }));
+            return Task.CompletedTask;
         });
 
-        _app.MapGet("/online/clients", async context =>
+        _app.MapGet("/online/clients", context =>
         {
             var clients = _context.GetClientManager().GetOnlineClients();
             Response(context.Response, Common.MakeOkJsonMessage(new Dictionary<string, object>
             {
                 {"clients", clients}, 
             }));
+            return Task.CompletedTask;
         });
 
-        _app.MapGet("/online/rooms", async context =>
+        _app.MapGet("/online/rooms", context =>
         {
             var rooms = _context.GetRoomManager().GetAllRooms();
+            
+            var targetRooms = new List<Dictionary<string, object>>();
+            foreach (var room in rooms)
+            {
+                targetRooms.Add(new Dictionary<string, Object>
+                {
+                    {SignalMessage.KeyId, room.Id},
+                    {SignalMessage.KeyName, room.Name},
+                    {SignalMessage.KeyClients, room.GetClients()},    
+                });    
+            }
             Response(context.Response, Common.MakeOkJsonMessage(new Dictionary<string, object>
             {
-                {"rooms", rooms},
+                {"rooms", targetRooms},
             }));
+            return Task.CompletedTask;
         });
 
-        _app.MapGet("/request/room/status", async context =>
+        _app.MapGet("/request/room/status", context =>
         {
             string roomId = context.Request.Query[SignalMessage.KeyRoomId]!;
             var room = _context.GetRoomManager().FindRoomById(roomId);
             if (room == null)
             {
                 Response(context.Response, Errors.MakeKnownErrorMessage(Errors.ErrNoRoomFound));
-                return;
+                return Task.CompletedTask;
             }
             Response(context.Response, Common.MakeOkJsonMessage(new Dictionary<string, object>()
             {
@@ -99,10 +115,11 @@ public class HttpHandler
                     }
                 },
             }));
+            return Task.CompletedTask;
         });
     }
 
-    private async void Response(HttpResponse resp, string msg)
+    private static async void Response(HttpResponse resp, string msg)
     {
         await resp.WriteAsync(msg);
     }

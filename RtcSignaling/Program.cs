@@ -1,6 +1,5 @@
 using System.Net;
 using RtcSignaling;using RtcSignaling.Controllers;
-using RtcSignaling.Websocket;
 using AppContext = RtcSignaling.AppContext;
 using Serilog;
 
@@ -29,7 +28,7 @@ builder.Services.AddSwaggerGen();
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Listen(IPAddress.Any, 5001, listenOptions =>
+    options.Listen(IPAddress.Any, 9999, listenOptions =>
     {
         listenOptions.UseHttps("./Cert/syxmsg.xyz.pfx", "jt182l0laf75v1");
     });
