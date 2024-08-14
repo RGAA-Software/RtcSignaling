@@ -2,8 +2,8 @@
 
 public class AppContext
 {
-    private ClientManager _clientManager;
-    private RoomManager _roomManager;
+    private readonly ClientManager _clientManager;
+    private readonly RoomManager _roomManager;
 
     public AppContext()
     {

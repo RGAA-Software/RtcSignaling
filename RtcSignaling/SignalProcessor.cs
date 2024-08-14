@@ -53,10 +53,13 @@ public class SignalProcessor
             }
             if (token == null || token.Length <= 0)
             {
-                var msg = "Token is empty, msg: " + message;
-                Log.Error(msg);
-                Console.WriteLine(msg);
-                //return false;
+                if (sigName != SignalMessage.SigNameHeartBeat && sigName != SignalMessage.SigNameHello)
+                {
+                    var msg = "Token is empty, msg: " + message;
+                    Log.Error(msg);
+                    Console.WriteLine(msg);
+                    return false;
+                }
             }
             
             if (sigName == SignalMessage.SigNameHello)

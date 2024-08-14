@@ -8,14 +8,10 @@ public class RoomManager(AppContext ctx)
     private readonly object _roomsMutex = new object();
     private readonly Dictionary<string, Room> _rooms = new Dictionary<string, Room>();
 
-    private string GenRoomId(string token, string clientId, string remoteClientId)
+    private static string GenRoomId(string token, string clientId, string remoteClientId)
     {
         //return Common.Md5String(remoteClientId);
-        if (token.Length <= 0)
-        {
-            return clientId + "-" + remoteClientId;
-        }
-        return token;
+        return clientId + "-" + remoteClientId;
     }
 
     public Room CreateRoom(string token, string clientId, string remoteClientId)
