@@ -11,7 +11,6 @@ Log.Logger = new LoggerConfiguration()
         rollingInterval: RollingInterval.Day,
         shared: true
     ).CreateLogger();
-Log.Information("Info");
 
 var builder = WebApplication.CreateBuilder(args);
 

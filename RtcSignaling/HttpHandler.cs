@@ -1,4 +1,7 @@
-﻿namespace RtcSignaling;
+﻿using RtcSignaling.User;
+using Serilog;
+
+namespace RtcSignaling;
 
 public class HttpHandler
 {
@@ -28,10 +31,49 @@ public class HttpHandler
             string? hardware = context.Request.Query["hardware"];
             string? platform = context.Request.Query["platform"];
             var clientInfo = (platform == null ? platform:"") + hardware!;
-            var id = _idGenerator.Gen(clientInfo);
+            
+            if (hardware == null || hardware.Length <= 0)
+            {
+                Log.Error("hardware info invalid");
+                Response(context.Response, Errors.MakeKnownErrorMessage(Errors.ErrInvalidParam));
+                return Task.CompletedTask;
+            }
+
+            var targetId = "";
+            while (true)
+            {
+                // query user by hardware information
+                var user = _context.GetUserDatabase().FindUserByClientInfo(clientInfo);
+                // user exists
+                if (user != null)
+                {
+                    targetId = user.Uid;
+                    break;
+                }
+                
+                // generate user id
+                targetId = _idGenerator.Gen(clientInfo);
+                // query user by new id
+                user = _context.GetUserDatabase().FindUserById(targetId);
+                // already exists, generate a new one
+                if (user != null)
+                {
+                    continue;
+                }
+
+                _context.GetUserDatabase().SaveUser(new User.User
+                {
+                    Uid = targetId,
+                    ClientInfo = clientInfo,
+                    CreateTimestamp = Common.GetCurrentTimestamp(),
+                    LastModifyTimestamp = Common.GetCurrentTimestamp(),
+                });
+                break;
+            }
+
             Response(context.Response, Common.MakeOkJsonMessage(new Dictionary<string, object>
             {
-                {"id", id},
+                {SignalMessage.KeyId, targetId},
             }));
             return Task.CompletedTask;
         });
@@ -114,6 +156,16 @@ public class HttpHandler
                         {SignalMessage.KeyClients, room.GetClients()},    
                     }
                 },
+            }));
+            return Task.CompletedTask;
+        });
+
+        _app.MapGet("/total/users", context =>
+        {
+            var count = _context.GetUserDatabase().GetTotalUsers();
+            Response(context.Response, Common.MakeOkJsonMessage(new Dictionary<string, object>
+            {
+                {"count", count},
             }));
             return Task.CompletedTask;
         });
