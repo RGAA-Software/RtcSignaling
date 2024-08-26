@@ -11,6 +11,9 @@ public class Errors
     public const int ErrNoClientFound = 605;
     public const int ErrCommandNotProcessed = 606;
     public const int ErrAlreadyLogin = 607;
+    public const int ErrUpdateDbFailed = 608;
+    public const int ErrRandomPasswordInvalid = 609;
+    public const int ErrSafetyPasswordInvalid = 610;
     
     public static string ErrorStringExtra(int err, string extra)
     {
@@ -40,6 +43,15 @@ public class Errors
                 break;
             case ErrAlreadyLogin:
                 errStr = "此ID已在线";
+                break;
+            case ErrUpdateDbFailed:
+                errStr = "更新数据库失败";
+                break;
+            case ErrRandomPasswordInvalid:
+                errStr = "随机密码校验失败";
+                break;
+            case ErrSafetyPasswordInvalid:
+                errStr = "安全密码校验失败";
                 break;
             default:
                 errStr = "未知错误";

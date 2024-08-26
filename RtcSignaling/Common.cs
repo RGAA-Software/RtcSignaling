@@ -45,4 +45,14 @@ public class Common
     {
         return MakeJsonMessage(200, "Ok", value);
     }
+
+    public static string MakeOkJsonMessage()
+    {
+        return MakeJsonMessage(200, "Ok", new Dictionary<string, object>());
+    }
+    
+    public static bool IsEmpty(string? value)
+    {
+        return value == null || value.Length <= 0;
+    }
 }

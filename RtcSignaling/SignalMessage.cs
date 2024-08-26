@@ -52,6 +52,10 @@ public class SignalMessage
     public const string KeyRooms = "rooms";
     public const string KeyAllowReSend = "allow_resend";
     public const string KeyToken = "token";
+    public const string KeyRandomPwd = "random_pwd";
+    public const string KeySafetyPwd = "safety_pwd";
+    public const string KeyOldRandomPwd = "old_random_pwd";
+    public const string KeyOldSafetyPwd = "old_safety_pwd";
     
     public class SigBaseMessage
     {

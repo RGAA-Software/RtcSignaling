@@ -40,7 +40,7 @@ public class Client
             Log.Error("Empty ws handler.");
             return;
         }
-        Log.Information("Send back: " + msg);
+        //Log.Information("Send back: " + msg);
         _wsHandler.SendMessage(msg);
     }
 

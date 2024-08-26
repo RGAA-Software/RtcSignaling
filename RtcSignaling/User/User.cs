@@ -11,12 +11,32 @@ public class User
     [BsonElement("uid")]
     public string Uid = "";
     
-    [BsonElement("clientInfo")]
+    [BsonElement("client_info")]
     public string ClientInfo = "";
     
-    [BsonElement("createTimestamp")]
+    [BsonElement("create_timestamp")]
     public long CreateTimestamp;
     
-    [BsonElement("lastModifyTimestamp")]
+    [BsonElement("last_modify_timestamp")]
     public long LastModifyTimestamp;
+
+    [BsonElement("random_pwd")]
+    public string RandomPwd = "";
+    
+    [BsonElement("safety_pwd")]
+    public string SafetyPwd = "";
+
+
+    public Dictionary<string, object> ToMap()
+    {
+        return new Dictionary<string, object>
+        {
+            {"obj_id", ObjectId.ToString()},
+            {"id", Uid},
+            {"client_info", ClientInfo},
+            {"create_timestamp", CreateTimestamp},
+            {"last_modify_timestamp", LastModifyTimestamp}
+        };
+    }
+
 }

@@ -15,7 +15,9 @@ public class UserDatabase
     private const string DatabaseName = "signaling";
 
     private const string KeyUid = "uid";
-    private const string KeyClientInfo = "clientInfo";
+    private const string KeyClientInfo = "client_info";
+    private const string KeyRandomPwd = "random_pwd";
+    private const string KeySafetyPwd = "safety_pwd";
     
     public UserDatabase(AppContext ctx)
     {
@@ -70,6 +72,39 @@ public class UserDatabase
         return true;
     }
 
+    public bool UpdateUserById(string id, Dictionary<string, object> values)
+    {
+        var update = Builders<User>.Update;
+        UpdateDefinition<User>? updateDef = null;
+        foreach (var pair in values)
+        {
+            updateDef = update.Set(pair.Key, pair.Value);
+        }
+        if (updateDef == null)
+        {
+            Log.Error("no value to update.");
+            return false;
+        }
+        var result = _userCollection.UpdateOne(Builders<User>.Filter.Eq(KeyUid, id), updateDef);
+        return result.MatchedCount >= 1;
+    }
+
+    public bool UpdateRandomPwd(string id, string randomPwd)
+    {
+        return UpdateUserById(id, new Dictionary<string, object>
+        {
+            {KeyRandomPwd, randomPwd},
+        });
+    }
+
+    public bool UpdateSafetyPwd(string id, string safetyPwd)
+    {
+        return UpdateUserById(id, new Dictionary<string, object>
+        {
+            {KeySafetyPwd, safetyPwd},
+        });
+    }
+    
     public long GetTotalUsers()
     {
         return _userCollection.CountDocuments(new BsonDocument());

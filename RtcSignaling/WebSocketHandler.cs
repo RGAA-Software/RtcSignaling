@@ -43,7 +43,7 @@ public class WebSocketHandler
                     if (result.EndOfMessage)
                     {
                         var message = sb.ToString();
-                        Log.Information("type: " + result.MessageType + ", count: " + message.Length);
+                        //Log.Information("type: " + result.MessageType + ", count: " + message.Length);
                         if (!_processor.ParseMessage(message, this))
                         {
                             Log.Error("Parse failed");

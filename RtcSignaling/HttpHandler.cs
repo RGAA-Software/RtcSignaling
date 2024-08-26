@@ -1,24 +1,21 @@
-﻿using RtcSignaling.User;
+﻿using RtcSignaling.Password;
+using RtcSignaling.User;
 using Serilog;
 
 namespace RtcSignaling;
 
-public class HttpHandler
+public class HttpHandler : BaseHttpHandler
 {
-    private readonly AppContext _context;
-    private readonly WebApplication _app;
-    private readonly ClientIdGenerator _idGenerator;
+    private readonly ClientIdGenerator _idGenerator = new();
     
-    public HttpHandler(AppContext ctx, WebApplication app)
+    public HttpHandler(AppContext ctx, WebApplication app) : base(ctx, app)
     {
-        _context = ctx;
-        _app = app;
-        _idGenerator = new ClientIdGenerator();
+        this.RegisterHandlers();
     }
 
-    public void RegisterHandlers()
+    protected sealed override void RegisterHandlers() 
     {
-        _app.MapGet("/ping", () => 
+        App.MapGet(Api.ApiPing, () => 
         {
             return Common.MakeOkJsonMessage(new Dictionary<string, object>
             {
@@ -26,7 +23,7 @@ public class HttpHandler
             }); 
         }).WithName("ping");
 
-        _app.MapGet("/request/client/id", context =>
+        App.MapGet(Api.ApiRequestClientId, context =>
         {
             string? hardware = context.Request.Query["hardware"];
             string? platform = context.Request.Query["platform"];
@@ -40,33 +37,44 @@ public class HttpHandler
             }
 
             var targetId = "";
+            var randomPwd = "";
+            var db = Context.GetUserDatabase();
             while (true)
             {
                 // query user by hardware information
-                var user = _context.GetUserDatabase().FindUserByClientInfo(clientInfo);
+                var user = db.FindUserByClientInfo(clientInfo);
                 // user exists
                 if (user != null)
                 {
+                    var newRandomPwd = RandomPwdGenerator.GenRandomPassword();
+                    if (!db.UpdateRandomPwd(user.Uid, Common.Md5String(newRandomPwd)))
+                    {
+                        ResponseDbError(context);
+                        return Task.CompletedTask;
+                    }
                     targetId = user.Uid;
+                    randomPwd = newRandomPwd;
                     break;
                 }
                 
                 // generate user id
                 targetId = _idGenerator.Gen(clientInfo);
                 // query user by new id
-                user = _context.GetUserDatabase().FindUserById(targetId);
+                user = Context.GetUserDatabase().FindUserById(targetId);
                 // already exists, generate a new one
                 if (user != null)
                 {
                     continue;
                 }
 
-                _context.GetUserDatabase().SaveUser(new User.User
+                randomPwd = RandomPwdGenerator.GenRandomPassword();
+                db.SaveUser(new User.User
                 {
                     Uid = targetId,
                     ClientInfo = clientInfo,
                     CreateTimestamp = Common.GetCurrentTimestamp(),
                     LastModifyTimestamp = Common.GetCurrentTimestamp(),
+                    RandomPwd = Common.Md5String(randomPwd),
                 });
                 break;
             }
@@ -74,14 +82,15 @@ public class HttpHandler
             Response(context.Response, Common.MakeOkJsonMessage(new Dictionary<string, object>
             {
                 {SignalMessage.KeyId, targetId},
+                {SignalMessage.KeyRandomPwd, randomPwd},
             }));
             return Task.CompletedTask;
         });
 
-        _app.MapGet("/check/client/online", context =>
+        App.MapGet(Api.ApiCheckClientOnline, context =>
         {
             string clientId = context.Request.Query["client_id"]!;
-            var online = _context.GetClientManager().IsClientOnline(clientId);
+            var online = Context.GetClientManager().IsClientOnline(clientId);
             Response(context.Response, Common.MakeOkJsonMessage(new Dictionary<string, object>
             {
                 {"client_id", clientId},
@@ -90,12 +99,12 @@ public class HttpHandler
             return Task.CompletedTask;
         });
 
-        _app.MapGet("/check/client/pair/online", context =>
+        App.MapGet(Api.ApiCheckClientPairOnline, context =>
         {
             string clientId = context.Request.Query["client_id"]!;
-            var clientIdOnline = _context.GetClientManager().IsClientOnline(clientId!);
+            var clientIdOnline = Context.GetClientManager().IsClientOnline(clientId!);
             string remoteClientId = context.Request.Query["remote_client_id"]!;
-            var remoteClientIdOnline = _context.GetClientManager().IsClientOnline(remoteClientId);
+            var remoteClientIdOnline = Context.GetClientManager().IsClientOnline(remoteClientId);
             Response(context.Response, Common.MakeOkJsonMessage(new Dictionary<string, object>
             {
                 {"client_id", clientId},
@@ -106,9 +115,9 @@ public class HttpHandler
             return Task.CompletedTask;
         });
 
-        _app.MapGet("/online/clients", context =>
+        App.MapGet(Api.ApiOnlineClients, context =>
         {
-            var clients = _context.GetClientManager().GetOnlineClients();
+            var clients = Context.GetClientManager().GetOnlineClients();
             Response(context.Response, Common.MakeOkJsonMessage(new Dictionary<string, object>
             {
                 {"clients", clients}, 
@@ -116,9 +125,9 @@ public class HttpHandler
             return Task.CompletedTask;
         });
 
-        _app.MapGet("/online/rooms", context =>
+        App.MapGet(Api.ApiOnlineRooms, context =>
         {
-            var rooms = _context.GetRoomManager().GetAllRooms();
+            var rooms = Context.GetRoomManager().GetAllRooms();
             
             var targetRooms = new List<Dictionary<string, object>>();
             foreach (var room in rooms)
@@ -137,10 +146,10 @@ public class HttpHandler
             return Task.CompletedTask;
         });
 
-        _app.MapGet("/request/room/status", context =>
+        App.MapGet(Api.ApiRequestRoomStatus, context =>
         {
             string roomId = context.Request.Query[SignalMessage.KeyRoomId]!;
-            var room = _context.GetRoomManager().FindRoomById(roomId);
+            var room = Context.GetRoomManager().FindRoomById(roomId);
             if (room == null)
             {
                 Response(context.Response, Errors.MakeKnownErrorMessage(Errors.ErrNoRoomFound));
@@ -156,16 +165,6 @@ public class HttpHandler
                         {SignalMessage.KeyClients, room.GetClients()},    
                     }
                 },
-            }));
-            return Task.CompletedTask;
-        });
-
-        _app.MapGet("/total/users", context =>
-        {
-            var count = _context.GetUserDatabase().GetTotalUsers();
-            Response(context.Response, Common.MakeOkJsonMessage(new Dictionary<string, object>
-            {
-                {"count", count},
             }));
             return Task.CompletedTask;
         });
