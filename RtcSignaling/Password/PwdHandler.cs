@@ -12,6 +12,7 @@ public class PwdHandler : BaseHttpHandler
         HandleRequestRandomPwd();
         HandleModifySafetyPwd();
         HandleVerifyRandomPassword();
+        HandleModifyRandomPassword();
     }
 
     private void HandleRequestRandomPwd()
@@ -138,6 +139,44 @@ public class PwdHandler : BaseHttpHandler
             ResponseOk(context);
             return Ret();
 
+            Task Ret() => Task.CompletedTask;
+        });
+    }
+
+    private void HandleModifyRandomPassword()
+    {
+        App.MapGet(Api.ApiModifyRandomPassword, context =>
+        {
+            string? clientId = context.Request.Query[SignalMessage.KeyClientId];
+            string? newPwd = context.Request.Query[SignalMessage.KeyRandomPwd];
+            if (Common.IsEmpty(clientId) || Common.IsEmpty(newPwd) || newPwd!.Length < 8)
+            {
+                ResponseErrorParam(context);
+                return Ret();
+            }
+            
+            var db = Context.GetUserDatabase();
+            var user = db.FindUserById(clientId!);
+            if (user == null)
+            {
+                ResponseNoUser(context);
+                return Ret();
+            }
+            
+            if (db.UpdateRandomPwd(clientId!, Common.Md5String(newPwd!)))
+            {
+                ResponseOk(context, new Dictionary<string, object>
+                {
+                    {SignalMessage.KeyId, clientId!},
+                    {SignalMessage.KeyRandomPwd, newPwd!}
+                });
+            }
+            else
+            {
+                ResponseError(context, Errors.ErrUpdateDbFailed);
+            }
+            return Ret();
+            
             Task Ret() => Task.CompletedTask;
         });
     }

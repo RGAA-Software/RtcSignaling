@@ -12,6 +12,7 @@ public class Api
     public const string ApiTotalUsers = "/total/users";
     public const string ApiRequestUserInfo = "/request/user/info";
     public const string ApiRequestRandomPassword = "/request/random/password";
+    public const string ApiModifyRandomPassword = "/modify/random/password";
     public const string ApiModifySafetyPassword = "/modify/safety/password";
     public const string ApiVerifyRandomPassword = "/verify/random/password";
 }
