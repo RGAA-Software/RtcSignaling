@@ -2,6 +2,7 @@
 using System.Text.Json.Nodes;
 using Serilog;
 using Newtonsoft.Json;
+using RtcSignaling.Room;
 
 namespace RtcSignaling;
 
@@ -61,6 +62,18 @@ public class SignalProcessor
                     return false;
                 }
             }
+
+            var groupId = "";
+            if (jsonObject.TryGetValue(SignalMessage.KeyGroupId, out var gid))
+            {
+                groupId = gid.ToString();
+            }
+
+            var userId = "";
+            if (jsonObject.TryGetValue(SignalMessage.KeyUserId, out var uid))
+            {
+                userId = uid.ToString();
+            }
             
             if (sigName == SignalMessage.SigNameHello)
             {
@@ -77,6 +90,8 @@ public class SignalProcessor
                     ClientId = GetStringValue(jsonObject, SignalMessage.KeyClientId),
                     Platform = GetStringValue(jsonObject, SignalMessage.KeyPlatform),
                     AllowReSend = allowReSend,
+                    GroupId = groupId,
+                    UserId = userId,
                 }, wsHandler);
                 
             } else if (sigName == SignalMessage.SigNameCreateRoom)
@@ -88,6 +103,8 @@ public class SignalProcessor
                     Token = token,
                     ClientId = GetStringValue(jsonObject, SignalMessage.KeyClientId),
                     RemoteClientId = GetStringValue(jsonObject, SignalMessage.KeyRemoteClientId),
+                    GroupId = groupId,
+                    UserId = userId,
                 });
                 
             } else if (sigName == SignalMessage.SigNameJoinRoom)
@@ -100,7 +117,9 @@ public class SignalProcessor
                     OriginMessage = message,
                     ClientId = GetStringValue(jsonObject, SignalMessage.KeyClientId),
                     RemoteClientId = GetStringValue(jsonObject, SignalMessage.KeyRemoteClientId),
-                    RoomId = GetStringValue(jsonObject, SignalMessage.KeyRoomId)
+                    RoomId = GetStringValue(jsonObject, SignalMessage.KeyRoomId),
+                    GroupId = groupId,
+                    UserId = userId,
                 });
                 
             } else if (sigName == SignalMessage.SigNameInviteClient)
@@ -112,7 +131,9 @@ public class SignalProcessor
                     OriginMessage = message,
                     ClientId = GetStringValue(jsonObject, SignalMessage.KeyClientId),
                     RemoteClientId = GetStringValue(jsonObject, SignalMessage.KeyRemoteClientId),
-                    RoomId = GetStringValue(jsonObject, SignalMessage.KeyRoomId)
+                    RoomId = GetStringValue(jsonObject, SignalMessage.KeyRoomId),
+                    GroupId = groupId,
+                    UserId = userId,
                 });
             } 
             else if (sigName == SignalMessage.SigNameLeaveRoom)
@@ -124,6 +145,8 @@ public class SignalProcessor
                     Token = token,
                     ClientId = GetStringValue(jsonObject, SignalMessage.KeyClientId),
                     RoomId = GetStringValue(jsonObject, SignalMessage.KeyRoomId),
+                    GroupId = groupId,
+                    UserId = userId,
                 });
                 
             } else if (sigName == SignalMessage.SigNameHeartBeat)
@@ -134,7 +157,9 @@ public class SignalProcessor
                     SigName = sigName,
                     Token = token,
                     ClientId = GetStringValue(jsonObject, SignalMessage.KeyClientId),
-                    Index = GetInt64Value(jsonObject, SignalMessage.KeyIndex)
+                    Index = GetInt64Value(jsonObject, SignalMessage.KeyIndex),
+                    GroupId = groupId,
+                    UserId = userId,
                 });
                 
             } else if (sigName == SignalMessage.SigNameOfferSdp)
@@ -147,7 +172,9 @@ public class SignalProcessor
                     OriginMessage = message,
                     ClientId = GetStringValue(jsonObject, SignalMessage.KeyClientId),
                     RoomId = GetStringValue(jsonObject, SignalMessage.KeyRoomId),
-                    Sdp = GetStringValue(jsonObject, SignalMessage.KeySdp)
+                    Sdp = GetStringValue(jsonObject, SignalMessage.KeySdp),
+                    GroupId = groupId,
+                    UserId = userId,
                 });
                 
             } else if (sigName == SignalMessage.SigNameAnswerSdp)
@@ -160,7 +187,9 @@ public class SignalProcessor
                     OriginMessage = message,
                     ClientId = GetStringValue(jsonObject, SignalMessage.KeyClientId),
                     RoomId = GetStringValue(jsonObject, SignalMessage.KeyRoomId),
-                    Sdp = GetStringValue(jsonObject, SignalMessage.KeySdp)
+                    Sdp = GetStringValue(jsonObject, SignalMessage.KeySdp),
+                    GroupId = groupId,
+                    UserId = userId,
                 });
 
             } else if (sigName == SignalMessage.SigNameIce)
@@ -175,7 +204,9 @@ public class SignalProcessor
                     RoomId = GetStringValue(jsonObject, SignalMessage.KeyRoomId),
                     Ice = GetStringValue(jsonObject, SignalMessage.KeyIce),
                     Mid = GetStringValue(jsonObject, SignalMessage.KeyMid),
-                    SdpMLineIndex = GetInt64Value(jsonObject, SignalMessage.KeySdpMLineIndex)
+                    SdpMLineIndex = GetInt64Value(jsonObject, SignalMessage.KeySdpMLineIndex),
+                    GroupId = groupId,
+                    UserId = userId,
                 });
                 
             } else if (sigName == SignalMessage.SigNameForceIFrame)
@@ -188,6 +219,8 @@ public class SignalProcessor
                     OriginMessage = message,
                     ClientId = GetStringValue(jsonObject, SignalMessage.KeyClientId),
                     RoomId = GetStringValue(jsonObject, SignalMessage.KeyRoomId),
+                    GroupId = groupId,
+                    UserId = userId,
                 });
                 
             } else if (sigName == SignalMessage.SigNameReqControl)
@@ -200,6 +233,8 @@ public class SignalProcessor
                     OriginMessage = message,
                     ClientId = GetStringValue(jsonObject, SignalMessage.KeyClientId),
                     RemoteClientId = GetStringValue(jsonObject, SignalMessage.KeyRemoteClientId),
+                    GroupId = groupId,
+                    UserId = userId,
                 });
 
             } else if (sigName == SignalMessage.SigNameUnderControl)
@@ -212,6 +247,8 @@ public class SignalProcessor
                     OriginMessage = message,
                     SelfClientId = GetStringValue(jsonObject, SignalMessage.KeySelfClientId),
                     ControllerId = GetStringValue(jsonObject, SignalMessage.KeyControlClientId),
+                    GroupId = groupId,
+                    UserId = userId,
                 });
                 
             } else if (sigName == SignalMessage.SigNameOnDataChannelReady)
@@ -224,7 +261,9 @@ public class SignalProcessor
                     OriginMessage = message,
                     SelfClientId = GetStringValue(jsonObject, SignalMessage.KeySelfClientId),
                     ControllerId = GetStringValue(jsonObject, SignalMessage.KeyControlClientId),
-                    RoomId = GetStringValue(jsonObject, SignalMessage.KeyRoomId)
+                    RoomId = GetStringValue(jsonObject, SignalMessage.KeyRoomId),
+                    GroupId = groupId,
+                    UserId = userId,
                 });
 
             } else if (sigName == SignalMessage.SigNameOnRejectControl)
@@ -237,10 +276,11 @@ public class SignalProcessor
                     OriginMessage = message,
                     ClientId = GetStringValue(jsonObject, SignalMessage.KeyClientId),
                     RoomId = GetStringValue(jsonObject, SignalMessage.KeyRoomId),
-                    ControllerId = GetStringValue(jsonObject, SignalMessage.KeyControlClientId)
+                    ControllerId = GetStringValue(jsonObject, SignalMessage.KeyControlClientId),
+                    GroupId = groupId,
+                    UserId = userId,
                 });
             }
-
             return true;
         }
         catch (Exception e)
@@ -251,7 +291,7 @@ public class SignalProcessor
         }
     }
 
-    private Room? GetRoomById(string roomId, Client reqClient)
+    private Room.Room? GetRoomById(string roomId, Client reqClient)
     {
         var room = _context.GetRoomManager().FindRoomById(roomId);
         if (room == null)
@@ -287,6 +327,8 @@ public class SignalProcessor
         _client.Token = msg.Token;
         _client.Platform = msg.Platform;
         _client.UpdateTimestamp = Common.GetCurrentTimestamp();
+        _client.GroupId = msg.GroupId;
+        _client.UserId = msg.UserId;
         _clientManager.AddClient(_client);
         _client.Notify(SignalMessage.MakeOnHelloMessage(_client.Token, _client.Id));
         
@@ -297,11 +339,12 @@ public class SignalProcessor
     private void _onSigCreateRoomCbk(SignalMessage.SigCreateRoomMessage msg)
     {
         if (!IsClientIdOk(msg.ClientId, "CreateRoom")) return;
-
-        var room = _roomManager.CreateRoom(msg.Token, msg.ClientId, msg.RemoteClientId);
+        var room = _roomManager.CreateRoom(msg.Token, msg.ClientId, msg.RemoteClientId, msg.GroupId);
         _client.Id = msg.ClientId;
         _client.Token = msg.Token;
         _client.Notify(SignalMessage.MakeOnCreatedRoomMessage(msg.Token, msg.ClientId, msg.RemoteClientId, room));
+        Log.Information("CreateRoom, token: " + msg.Token + ", client id: " + msg.ClientId 
+                        + ", remote client id: " + msg.RemoteClientId + ", group id: " + msg.GroupId);
     }
     
     private void _onSigJoinRoomCbk(SignalMessage.SigJoinRoomMessage msg)

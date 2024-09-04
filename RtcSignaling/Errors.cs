@@ -14,6 +14,8 @@ public class Errors
     public const int ErrUpdateDbFailed = 608;
     public const int ErrRandomPasswordInvalid = 609;
     public const int ErrSafetyPasswordInvalid = 610;
+    public const int ErrUnknownTunnelType = 611;
+    public const int ErrTunnelOverFlow = 612;
     
     public static string ErrorStringExtra(int err, string extra)
     {
@@ -52,6 +54,12 @@ public class Errors
                 break;
             case ErrSafetyPasswordInvalid:
                 errStr = "安全密码校验失败";
+                break;
+            case ErrUnknownTunnelType:
+                errStr = "未知的通道类型";
+                break;
+            case ErrTunnelOverFlow:
+                errStr = "通道数溢出";
                 break;
             default:
                 errStr = "未知错误";

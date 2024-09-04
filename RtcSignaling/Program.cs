@@ -1,6 +1,7 @@
 using System.Net;
 using RtcSignaling;using RtcSignaling.Controllers;
 using RtcSignaling.Password;
+using RtcSignaling.Room;
 using RtcSignaling.User;
 using AppContext = RtcSignaling.AppContext;
 using Serilog;
@@ -41,6 +42,7 @@ var app = builder.Build();
 var httpHandler = new HttpHandler(appContext, app);
 var pwdHandler = new PwdHandler(appContext, app);
 var userHandler = new UserHandler(appContext, app);
+var roomHandler = new RoomHandler(appContext, app);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

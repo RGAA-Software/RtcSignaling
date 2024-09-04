@@ -15,8 +15,8 @@ public class WeatherForecastController : ControllerBase
     }
 
     [HttpGet(Name = "Rooms")]
-    public IEnumerable<Room> Get()
+    public IEnumerable<Room.Room> Get()
     {
-        return new List<Room>();
+        return new List<Room.Room>();
     }
 }

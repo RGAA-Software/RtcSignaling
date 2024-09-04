@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace RtcSignaling;
+namespace RtcSignaling.Room;
 
 public class Room
 {
@@ -9,6 +9,12 @@ public class Room
     
     [JsonProperty("name")]
     public string Name = "";
+
+    [JsonProperty("creator")]
+    public string Creator = "";
+
+    [JsonProperty("group_id")]
+    public string GroupId = "";
     
     [JsonProperty("clients")]
     private readonly Dictionary<string, Client> _clients = new Dictionary<string, Client>();
@@ -112,6 +118,14 @@ public class Room
         lock (_clientMutex)
         {
             return _clients.Count <= 0;
+        }
+    }
+
+    public bool HasRemotePeer()
+    {
+        lock (_clientMutex)
+        {
+            return _clients.Count >= 2;
         }
     }
 }

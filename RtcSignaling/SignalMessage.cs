@@ -56,6 +56,11 @@ public class SignalMessage
     public const string KeySafetyPwd = "safety_pwd";
     public const string KeyOldRandomPwd = "old_random_pwd";
     public const string KeyOldSafetyPwd = "old_safety_pwd";
+    public const string KeyMaxTunnelCount = "max_tunnel_count";
+    public const string KeyTunnelType = "tunnel_type";
+    public const string KeyGroupId = "group_id";
+    public const string KeyUserId = "user_id";
+    public const string KeyCreator = "creator";
     
     public class SigBaseMessage
     {
@@ -67,6 +72,12 @@ public class SignalMessage
         
         [JsonProperty("origin_message")]
         public string OriginMessage = "";
+
+        [JsonProperty("group_id")]
+        public string GroupId = "";
+
+        [JsonProperty("user_id")]
+        public string UserId = "";
     }
     
     public class SigErrorMessage : SigBaseMessage
@@ -443,7 +454,7 @@ public class SignalMessage
         return JsonConvert.SerializeObject(msg);
     }
 
-    public static string MakeOnCreatedRoomMessage(string token, string clientId, string remoteClientId, Room room)
+    public static string MakeOnCreatedRoomMessage(string token, string clientId, string remoteClientId, Room.Room room)
     {
         var msg = new SigOnCreatedRoomMessage
         {
@@ -469,7 +480,7 @@ public class SignalMessage
         return JsonConvert.SerializeObject(msg);
     }
 
-    public static string MakeOnJoinedRoomMessage(string token, Room room, string clientId, string remoteClientId)
+    public static string MakeOnJoinedRoomMessage(string token, Room.Room room, string clientId, string remoteClientId)
     {
         var msg = new SigOnJoinedRoomMessage
         {
@@ -483,7 +494,7 @@ public class SignalMessage
         return JsonConvert.SerializeObject(msg);
     }
 
-    public static string MakeOnRemoteJoinedRoomMessage(string token, Room room, string remoteClientId)
+    public static string MakeOnRemoteJoinedRoomMessage(string token, Room.Room room, string remoteClientId)
     {
         var msg = new SigOnRemoteJoinedRoomMessage
         {
@@ -496,7 +507,7 @@ public class SignalMessage
         return JsonConvert.SerializeObject(msg);
     }
 
-    public static string MakeOnLeftRoomMessage(string token, Room room, string clientId)
+    public static string MakeOnLeftRoomMessage(string token, Room.Room room, string clientId)
     {
         var msg = new SigOnLeftRoomMessage
         {
@@ -509,7 +520,7 @@ public class SignalMessage
         return JsonConvert.SerializeObject(msg);
     }
 
-    public static string MakeOnRemoteClientLeftMessage(string token, Room room, string leftClientId)
+    public static string MakeOnRemoteClientLeftMessage(string token, Room.Room room, string leftClientId)
     {
         var msg = new SigOnRemoteLeftRoomMessage
         {
@@ -523,7 +534,7 @@ public class SignalMessage
     }
     
     // MakeOnInvitedToRoomMessage 通知被邀请者，已经加入Room了
-    public static string MakeOnInvitedToRoomMessage(string token, Room room, string invitorClientId, string selfId)
+    public static string MakeOnInvitedToRoomMessage(string token, Room.Room room, string invitorClientId, string selfId)
     {
         var msg = new SigOnInvitedToRoomMessage
         {
@@ -538,7 +549,7 @@ public class SignalMessage
     }
     
     // MakeOnRemoteInvitedToRoomMessage 通知到发起邀请者,对方已经被邀请进Room了
-    public static string MakeOnRemoteInvitedToRoomMessage(string token, Room room, string clientId, string remoteClientId)
+    public static string MakeOnRemoteInvitedToRoomMessage(string token, Room.Room room, string clientId, string remoteClientId)
     {
         var msg = new SigOnRemoteInvitedToRoomMessage
         {

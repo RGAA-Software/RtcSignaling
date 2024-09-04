@@ -136,6 +136,8 @@ public class HttpHandler : BaseHttpHandler
                 {
                     {SignalMessage.KeyId, room.Id},
                     {SignalMessage.KeyName, room.Name},
+                    {SignalMessage.KeyGroupId, room.GroupId},
+                    {SignalMessage.KeyCreator, room.Creator},
                     {SignalMessage.KeyClients, room.GetClients()},    
                 });    
             }

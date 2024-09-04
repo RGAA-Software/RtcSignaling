@@ -1,12 +1,12 @@
 ﻿using Serilog;
 
-namespace RtcSignaling;
+namespace RtcSignaling.Room;
 
 public class RoomManager(AppContext ctx)
 {
     private AppContext _context = ctx;
     private readonly object _roomsMutex = new object();
-    private readonly Dictionary<string, Room> _rooms = new Dictionary<string, Room>();
+    private readonly Dictionary<string, Room> _rooms = new();
 
     private static string GenRoomId(string token, string clientId, string remoteClientId)
     {
@@ -14,7 +14,7 @@ public class RoomManager(AppContext ctx)
         return clientId + "-" + remoteClientId;
     }
 
-    public Room CreateRoom(string token, string clientId, string remoteClientId)
+    public Room CreateRoom(string token, string clientId, string remoteClientId, string groupId)
     {
         var targetRoomId = GenRoomId(token, clientId, remoteClientId);
         lock (_roomsMutex)
@@ -22,14 +22,19 @@ public class RoomManager(AppContext ctx)
             foreach (var pair in _rooms)
             {
                 var roomId = pair.Key;
+                var room = pair.Value;
                 if (roomId == targetRoomId)
                 {
-                    return pair.Value;
+                    room.Creator = clientId;
+                    room.GroupId = groupId;
+                    return room;
                 }
             }
-            var newRoom = new Room
+            var newRoom = new RtcSignaling.Room.Room
             {
                 Id = targetRoomId,
+                Creator = clientId,
+                GroupId = groupId,
             };
             _rooms[targetRoomId] = newRoom;
             return newRoom;
@@ -107,5 +112,67 @@ public class RoomManager(AppContext ctx)
                 Log.Information("Clean room:" + roomId);
             }
         }
+    }
+
+    public List<Room> GetActiveRoomsByGroupId(string groupId)
+    {
+        lock (_roomsMutex)
+        {
+            var rooms = new List<Room>();
+            foreach (var pair in _rooms)
+            {
+                var room = pair.Value;
+                if (room.GroupId == groupId && room.HasRemotePeer())
+                {
+                    rooms.Add(room);
+                }
+            }
+            return rooms;
+        }
+    }
+
+    public int CountActiveRoomsByGroupId(string groupId)
+    {
+        return GetActiveRoomsByGroupId(groupId).Count;
+    }
+
+    public Dictionary<string, List<Room>> GetActiveRoomsByGroupIdAndClassifyByClientId(string groupId)
+    {
+        var result = new Dictionary<string, List<Room>>();
+        var rooms = GetActiveRoomsByGroupId(groupId);
+        foreach (var room in rooms)
+        {
+            var creatorClientId = room.Creator;
+            if (!result.ContainsKey(creatorClientId))
+            {
+                result.Add(creatorClientId, new List<Room>());
+            }
+            result[creatorClientId].Add(room);
+        }
+
+        return result;
+    }
+
+    public int CountActiveRoomsByGroupIdAndClassifyByClientId(string groupId)
+    {
+        return GetActiveRoomsByGroupIdAndClassifyByClientId(groupId).Count;
+    }
+
+    public List<Room> GetRoomsCreatedByClientId(string clientId)
+    {
+        var rooms = new List<Room>();
+        lock (_roomsMutex)
+        {
+            foreach (var pair in _rooms)
+            {
+                var room = pair.Value;
+                if (room.Creator == clientId)
+                {
+                    rooms.Add(room);
+                }
+            }
+        }
+
+        return rooms;
     }
 }

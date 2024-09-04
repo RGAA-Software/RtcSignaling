@@ -26,6 +26,13 @@ public class Client
     
     [JsonProperty("update_timestamp")]
     public long UpdateTimestamp = 0;
+
+    [JsonProperty("group_id")]
+    public string GroupId = "";
+
+    [JsonProperty("user_id")]
+    public string UserId = "";
+    
     private WebSocketHandler? _wsHandler = null;
 
     public void SetWebSocket(WebSocketHandler? socket)
