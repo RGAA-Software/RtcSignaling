@@ -24,7 +24,7 @@
       "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "swagger",
-      "applicationUrl": "https://syxmsg.xyz:9999",
+      "applicationUrl": "https://syxmsg.xyz:40200",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

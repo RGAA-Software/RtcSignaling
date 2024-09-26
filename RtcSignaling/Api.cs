@@ -45,4 +45,6 @@ public class Api
         "/count/active/rooms/by/broup/classify/by/client";
     // 获取当前ID创建的房间
     public const string ApiRequestRoomsCreatedByClientId = "/request/rooms/created/by/client";
+    // 根据ID向一个客户端发送消息
+    public const string ApiSendMessageToClient = "/send/message/to/client";
 }

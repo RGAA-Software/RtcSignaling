@@ -15,13 +15,21 @@ public class HttpHandler : BaseHttpHandler
 
     protected sealed override void RegisterHandlers() 
     {
-        App.MapGet(Api.ApiPing, () => 
+        App.MapGet(Api.ApiPing, context =>
         {
-            return Common.MakeOkJsonMessage(new Dictionary<string, object>
+            var ip = context.Connection.RemoteIpAddress?.ToString();
+            var port = context.Connection.RemotePort;
+            string? clientTsStr = context.Request.Query["client_ts"];
+            var clientTs = clientTsStr ?? "";
+            Response(context.Response, Common.MakeOkJsonMessage(new Dictionary<string, object>
             {
                 {"message", "pong"},
-            }); 
-        }).WithName("ping");
+                {"www_ip", ip ?? ""},
+                {"www_port", port},
+                {"client_ts", clientTs},
+            }));
+            return Task.CompletedTask;
+        });
 
         App.MapGet(Api.ApiRequestClientId, context =>
         {
@@ -90,11 +98,12 @@ public class HttpHandler : BaseHttpHandler
         App.MapGet(Api.ApiCheckClientOnline, context =>
         {
             string clientId = context.Request.Query["client_id"]!;
-            var online = Context.GetClientManager().IsClientOnline(clientId);
+            var client = Context.GetClientManager().GetOnlineClientById(clientId);
             Response(context.Response, Common.MakeOkJsonMessage(new Dictionary<string, object>
             {
                 {"client_id", clientId},
-                {"client_id_online", online},
+                {"client_id_online", client != null},
+                {"client", client ?? new Client()},
             }));
             return Task.CompletedTask;
         });

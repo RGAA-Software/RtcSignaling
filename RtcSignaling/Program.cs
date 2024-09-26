@@ -2,6 +2,7 @@ using System.Net;
 using RtcSignaling;using RtcSignaling.Controllers;
 using RtcSignaling.Password;
 using RtcSignaling.Room;
+using RtcSignaling.Settings;
 using RtcSignaling.User;
 using AppContext = RtcSignaling.AppContext;
 using Serilog;
@@ -30,9 +31,11 @@ builder.Services.AddSwaggerGen();
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Listen(IPAddress.Any, 9999, listenOptions =>
+    var settings = appContext.GetSettings();
+    options.Listen(IPAddress.Any, settings.ListenPort, listenOptions =>
     {
-        listenOptions.UseHttps("./Cert/syxmsg.xyz.pfx", "jt182l0laf75v1");
+        listenOptions.UseHttps(settings.Certificate, settings.Password);
+        //listenOptions.UseHttps("./Cert/certificate.pfx", "Dolit@321");
     });
 });
 
@@ -63,8 +66,9 @@ app.Use(async (context, next) =>
         if (context.WebSockets.IsWebSocketRequest)
         {
             var websocket = await context.WebSockets.AcceptWebSocketAsync();
+            var remoteIp = context.Connection.RemoteIpAddress?.ToString();
             var handler = new WebSocketHandler(appContext);
-            await handler.Handle(websocket);
+            await handler.Handle(websocket, remoteIp);
         }
         else
         {

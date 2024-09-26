@@ -15,6 +15,7 @@
         <PackageReference Include="MongoDB.Bson" Version="2.28.0" />
         <PackageReference Include="MongoDB.Driver" Version="2.28.0" />
         <PackageReference Include="MongoDB.Driver.Core" Version="2.28.0" />
+        <PackageReference Include="Nett" Version="0.15.0" />
         <PackageReference Include="NUnit" Version="3.13.3"/>
         <PackageReference Include="NUnit3TestAdapter" Version="4.2.1"/>
         <PackageReference Include="NUnit.Analyzers" Version="3.6.1"/>

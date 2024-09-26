@@ -1,4 +1,6 @@
-﻿namespace RtcSignaling.User;
+﻿using Serilog;
+
+namespace RtcSignaling.User;
 
 public class UserHandler : BaseHttpHandler
 {
@@ -12,6 +14,7 @@ public class UserHandler : BaseHttpHandler
         HandleTotalUsers();
         HandleUserInfo();
         HandleVerifyUserInfo();
+        HandleSendMessage();
     }
 
     private void HandleTotalUsers()
@@ -43,7 +46,7 @@ public class UserHandler : BaseHttpHandler
             var user = db.FindUserById(id!);
             if (user == null)
             {
-                ResponseNoUser(context);
+                ResponseNoUser(context, id!);
                 return Task.CompletedTask;
             }
             ResponseOk(context, user.ToMap());
@@ -88,14 +91,16 @@ public class UserHandler : BaseHttpHandler
             var caller = db.FindUserById(clientId!);
             if (caller == null)
             {
-                ResponseNoUser(context);
+                // todo: 应该是未注册
+                ResponseNoUser(context, clientId);
                 return Ret();
             }
 
             var remotePeer = db.FindUserById(remoteClientId!);
             if (remotePeer == null)
             {
-                ResponseNoUser(context);
+                // todo: 应该是未注册
+                ResponseNoUser(context, remoteClientId);
                 return Ret();
             }
             if (remotePeer.RandomPwd != Common.Md5String(pwd!))
@@ -145,6 +150,37 @@ public class UserHandler : BaseHttpHandler
             ResponseOk(context);
             return Ret();
 
+            Task Ret() => Task.CompletedTask;
+        });
+    }
+
+    private void HandleSendMessage()
+    {
+        App.MapPost(Api.ApiSendMessageToClient, context =>
+        {
+            string? clientId = context.Request.Query[SignalMessage.KeyClientId];
+            string? controllerId = context.Request.Query[SignalMessage.KeyControlClientId];
+            string? msg = context.Request.Query[SignalMessage.KeyMessage];
+            if (Common.IsEmpty(clientId) || Common.IsEmpty(msg) || Common.IsEmpty(controllerId))
+            {
+                ResponseErrorParam(context);
+                return Ret();
+            }
+            
+            Log.Information("client id: " + clientId + " controller id: " + controllerId + " msg : " + msg);
+            
+            var client = Context.GetClientManager().GetOnlineClientById(clientId!);
+            if (client == null)
+            {
+                ResponseNoUser(context, clientId!);
+                return Ret();
+            }
+
+            var notifyMsg = SignalMessage.MakeSendMessage(clientId!, controllerId!, msg!);
+            client.Notify(notifyMsg);
+            
+            ResponseOk(context);
+            return Ret();
             Task Ret() => Task.CompletedTask;
         });
     }

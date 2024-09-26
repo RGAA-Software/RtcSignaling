@@ -44,13 +44,13 @@ public class Errors
                 errStr = "Command处理失败";
                 break;
             case ErrAlreadyLogin:
-                errStr = "此ID已在线";
+                errStr = "此客户端ID已在线";
                 break;
             case ErrUpdateDbFailed:
                 errStr = "更新数据库失败";
                 break;
             case ErrRandomPasswordInvalid:
-                errStr = "随机密码校验失败";
+                errStr = "密码校验失败";
                 break;
             case ErrSafetyPasswordInvalid:
                 errStr = "安全密码校验失败";
@@ -59,13 +59,13 @@ public class Errors
                 errStr = "未知的通道类型";
                 break;
             case ErrTunnelOverFlow:
-                errStr = "通道数溢出";
+                errStr = "通道数溢出，请检查授权通道数";
                 break;
             default:
                 errStr = "未知错误";
                 break;
         }
-        return errStr + extra;
+        return errStr + " " + extra;
     }
 
     public static string ErrorString(int err)
@@ -76,5 +76,10 @@ public class Errors
     public static string MakeKnownErrorMessage(int code)
     {
         return Common.MakeJsonMessage(code, ErrorString(code), new Dictionary<string, object>());
+    }
+
+    public static string MakeKnownErrorMessageExtra(int code, string extra)
+    {
+        return Common.MakeJsonMessage(code, ErrorStringExtra(code, extra), new Dictionary<string, object>());
     }
 }

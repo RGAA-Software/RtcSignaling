@@ -2,6 +2,7 @@
 using System.Text.Json.Nodes;
 using Serilog;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using RtcSignaling.Room;
 
 namespace RtcSignaling;
@@ -36,7 +37,7 @@ public class SignalProcessor
         return v;
     }
 
-    public bool ParseMessage(string message, WebSocketHandler wsHandler)
+    public bool ParseMessage(string message, WebSocketHandler wsHandler, string remoteIp)
     {
         try
         {
@@ -83,6 +84,18 @@ public class SignalProcessor
                 {
                     allowReSend = Convert.ToBoolean(value1);
                 }
+
+                var ipList = new List<string>();
+                if (jsonObject.TryGetValue(SignalMessage.KeyLocalIps, out var v)) 
+                {
+                    var ipArray = (JArray)v;
+                    foreach (var ip in ipArray)
+                    {
+                        ipList.Add(ip.ToString());
+                        Log.Information("Hello local ip: " + ip.ToString());
+                    }
+                }
+                
                 _onSigHelloCbk(new SignalMessage.SigHelloMessage
                 {
                     SigName = sigName,
@@ -92,6 +105,8 @@ public class SignalProcessor
                     AllowReSend = allowReSend,
                     GroupId = groupId,
                     UserId = userId,
+                    LocalIps = ipList,
+                    RemoteIp = remoteIp,
                 }, wsHandler);
                 
             } else if (sigName == SignalMessage.SigNameCreateRoom)
@@ -149,8 +164,39 @@ public class SignalProcessor
                     UserId = userId,
                 });
                 
+            } else if (sigName == SignalMessage.SigNameReqRemoteInfo)
+            {
+                // 请求对方信息
+                _onReqRemoteInfoCbk(new SignalMessage.SigReqRemoteInfoMessage
+                {
+                    SigName = sigName,
+                    Token = token,
+                    OriginMessage = message,
+                    ClientId = GetStringValue(jsonObject, SignalMessage.KeyClientId),
+                    RemoteClientId = GetStringValue(jsonObject, SignalMessage.KeyRemoteClientId),
+                });
+            } else if (sigName == SignalMessage.SigNameOnRemoteInfo)
+            {
+                // 返回自己的信息给对方
+                _onRemoteInfoCbk(new SignalMessage.SigOnRemoteInfoMessage
+                {
+                    SigName = sigName,
+                    Token = token,
+                    OriginMessage = message,
+                    SelfClientId = GetStringValue(jsonObject, SignalMessage.KeyClientId),
+                    ControllerId = GetStringValue(jsonObject, SignalMessage.KeyControlClientId),
+                });
             } else if (sigName == SignalMessage.SigNameHeartBeat)
             {
+                var ipList = new List<string>();
+                if (jsonObject.TryGetValue(SignalMessage.KeyLocalIps, out var v)) 
+                {
+                    var ipArray = (JArray)v;
+                    foreach (var ip in ipArray)
+                    {
+                        ipList.Add(ip.ToString());
+                    }
+                }
                 // heart beat
                 _onSigHeartBeatCbk(new SignalMessage.SigHeartBeatMessage
                 {
@@ -160,6 +206,7 @@ public class SignalProcessor
                     Index = GetInt64Value(jsonObject, SignalMessage.KeyIndex),
                     GroupId = groupId,
                     UserId = userId,
+                    LocalIps = ipList,
                 });
                 
             } else if (sigName == SignalMessage.SigNameOfferSdp)
@@ -281,6 +328,7 @@ public class SignalProcessor
                     UserId = userId,
                 });
             }
+
             return true;
         }
         catch (Exception e)
@@ -329,6 +377,8 @@ public class SignalProcessor
         _client.UpdateTimestamp = Common.GetCurrentTimestamp();
         _client.GroupId = msg.GroupId;
         _client.UserId = msg.UserId;
+        _client.LocalIps = msg.LocalIps;
+        _client.RemoteIp = msg.RemoteIp;
         _clientManager.AddClient(_client);
         _client.Notify(SignalMessage.MakeOnHelloMessage(_client.Token, _client.Id));
         
@@ -419,7 +469,40 @@ public class SignalProcessor
         // telling the other client, someone left
         room.NotifyExcept(msg.ClientId, SignalMessage.MakeOnRemoteClientLeftMessage(msg.Token, room, msg.ClientId));
     }
+    
+    private void _onReqRemoteInfoCbk(SignalMessage.SigReqRemoteInfoMessage msg)
+    {
+        if (!IsClientIdOk(msg.ClientId, "ReqRemoteInfo")) return;
+        if (!IsClientIdOk(msg.RemoteClientId, "ReqRemoteInfo")) return;
+        
+        // remote client
+        var remoteClient = _clientManager.GetOnlineClientById(msg.RemoteClientId);
+        if (remoteClient == null)
+        {
+            _client.Notify(SignalMessage.MakeOnSigKnownErrorMessage(msg.Token, Errors.ErrClientOffline));
+            Log.Error("Can't find remote client: " + msg.RemoteClientId);
+            return;
+        }
+        // route to remote client
+        remoteClient.Notify(msg.OriginMessage);
+    }
 
+    private void _onRemoteInfoCbk(SignalMessage.SigOnRemoteInfoMessage msg)
+    {
+        if (!IsClientIdOk(msg.SelfClientId, "ReqRemoteInfo")) return;
+        if (!IsClientIdOk(msg.ControllerId, "ReqRemoteInfo")) return;
+        // remote client
+        var controlClient = _clientManager.GetOnlineClientById(msg.ControllerId);
+        if (controlClient == null)
+        {
+            _client.Notify(SignalMessage.MakeOnSigKnownErrorMessage(msg.Token, Errors.ErrClientOffline));
+            Log.Error("Can't find remote client: " + msg.ControllerId);
+            return;
+        }
+        // route to remote client
+        controlClient.Notify(msg.OriginMessage);
+    }
+    
     private void _onSigHeartBeatCbk(SignalMessage.SigHeartBeatMessage msg)
     {
         if (!IsClientIdOk(msg.ClientId, "HeartBeat")) return;
@@ -431,6 +514,10 @@ public class SignalProcessor
             _client.Token = msg.Token;
             _client.Platform = msg.Platform;
             _client.UpdateTimestamp = Common.GetCurrentTimestamp();
+            if (msg.LocalIps.Count >= 1)
+            {
+                _client.LocalIps = msg.LocalIps;
+            }
             _clientManager.AddClient(_client);
         }
         _client.OnHeartBeat(msg);

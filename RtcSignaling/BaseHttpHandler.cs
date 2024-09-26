@@ -31,9 +31,9 @@ public class BaseHttpHandler
         await httpContext.Response.WriteAsync(Errors.MakeKnownErrorMessage(Errors.ErrInvalidParam));
     }
 
-    protected static void ResponseNoUser(HttpContext httpContext)
+    protected static async void ResponseNoUser(HttpContext httpContext, string id)
     {
-        ResponseError(httpContext, Errors.ErrNoClientFound);
+        await httpContext.Response.WriteAsync(Errors.MakeKnownErrorMessageExtra(Errors.ErrNoClientFound, id));
     }
 
     public static void ResponseRandomPwdError(HttpContext httpContext)

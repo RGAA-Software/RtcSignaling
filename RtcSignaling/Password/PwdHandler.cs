@@ -33,7 +33,7 @@ public class PwdHandler : BaseHttpHandler
             var user = db.FindUserById(id);
             if (user == null)
             {
-                ResponseNoUser(context);
+                ResponseNoUser(context, id);
                 return Task.CompletedTask;
             }
             
@@ -82,7 +82,7 @@ public class PwdHandler : BaseHttpHandler
             var user = db.FindUserById(id);
             if (user == null)
             {
-                ResponseNoUser(context);
+                ResponseNoUser(context, id);
                 return Task.CompletedTask;
             }
             
@@ -127,7 +127,7 @@ public class PwdHandler : BaseHttpHandler
             var user = db.FindUserById(clientId!);
             if (user == null)
             {
-                ResponseNoUser(context);
+                ResponseNoUser(context, clientId);
                 return Ret();
             }
             if (user.RandomPwd != Common.Md5String(pwd!))
@@ -159,7 +159,7 @@ public class PwdHandler : BaseHttpHandler
             var user = db.FindUserById(clientId!);
             if (user == null)
             {
-                ResponseNoUser(context);
+                ResponseNoUser(context, clientId);
                 return Ret();
             }
             

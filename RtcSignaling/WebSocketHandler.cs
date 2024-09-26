@@ -17,7 +17,7 @@ public class WebSocketHandler
         _processor = new SignalProcessor(ctx, this);
     }
     
-    public async Task Handle(WebSocket ws)
+    public async Task Handle(WebSocket ws, string remoteIp)
     {
         _webSocket = ws;
         try
@@ -44,7 +44,7 @@ public class WebSocketHandler
                     {
                         var message = sb.ToString();
                         //Log.Information("type: " + result.MessageType + ", count: " + message.Length);
-                        if (!_processor.ParseMessage(message, this))
+                        if (!_processor.ParseMessage(message, this, remoteIp))
                         {
                             Log.Error("Parse failed");
                         }

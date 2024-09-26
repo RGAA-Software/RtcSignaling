@@ -32,6 +32,12 @@ public class Client
 
     [JsonProperty("user_id")]
     public string UserId = "";
+
+    [JsonProperty("local_ips")]
+    public List<string> LocalIps = [];
+
+    [JsonProperty("remote_ip")]
+    public string RemoteIp = ""; 
     
     private WebSocketHandler? _wsHandler = null;
 

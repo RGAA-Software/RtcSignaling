@@ -30,7 +30,11 @@ public class SignalMessage
     public const string SigNameUnderControl = "sig_under_control";
     public const string SigNameOnDataChannelReady = "on_data_channel_ready";
     public const string SigNameOnRejectControl = "on_reject_control";
-
+    public const string SigNameReqRemoteInfo = "req_remote_info";
+    public const string SigNameOnRemoteInfo = "on_remote_info";
+    public const string SigNameSendMessage = "send_message";
+    public const string SigNameOnProcessedMessage = "processed_message";
+    
     public const string CmdQueryServerStatus = "query_status";
 
     public const string KeySigName = "sig_name";
@@ -61,6 +65,8 @@ public class SignalMessage
     public const string KeyGroupId = "group_id";
     public const string KeyUserId = "user_id";
     public const string KeyCreator = "creator";
+    public const string KeyLocalIps = "local_ips";
+    public const string KeyMessage = "message"; 
     
     public class SigBaseMessage
     {
@@ -100,6 +106,12 @@ public class SignalMessage
         
         [JsonProperty("allow_resend")]
         public bool AllowReSend = false;
+
+        [JsonProperty("local_ips")]
+        public List<string> LocalIps = [];
+
+        [JsonProperty("remote_ip")]
+        public string RemoteIp = "";
     }
     
     // SigOnHelloMessage hello回复
@@ -273,6 +285,32 @@ public class SignalMessage
         public List<Client> Clients = [];
     }
     
+    // 请求对方的信息
+    public class SigReqRemoteInfoMessage : SigBaseMessage
+    {
+        [JsonProperty("client_id")]
+        public string ClientId = "";
+        
+        [JsonProperty("remote_client_id")]
+        public string RemoteClientId = "";
+    }
+    
+    // 返给对方自己的信息
+    public class SigOnRemoteInfoMessage : SigBaseMessage
+    {
+        [JsonProperty("self_client_id")]
+        public string SelfClientId = "";
+        
+        [JsonProperty("controller_client_id")]
+        public string ControllerId = "";
+        
+        [JsonProperty("local_ips")]
+        public List<string> LocalIps = [];
+
+        [JsonProperty("www_ips")]
+        public List<string> WwwIps = [];
+    }
+    
     // SigHeartBeatMessage 心跳
     // client -> server
     public class SigHeartBeatMessage : SigBaseMessage 
@@ -285,6 +323,9 @@ public class SignalMessage
         
         [JsonProperty("platform")]
         public string Platform = "";
+        
+        [JsonProperty("local_ips")]
+        public List<string> LocalIps = [];
     }
     
     // SigOnHeartBeatMessage 心跳回复
@@ -426,6 +467,32 @@ public class SignalMessage
         public string RoomId = "";
     }
 
+    // 控制方发送了消息
+    public class SigSendMessage : SigBaseMessage
+    {
+        [JsonProperty("client_id")]
+        public string ClientId = "";
+        
+        [JsonProperty("controller_client_id")]
+        public string ControllerId = "";
+
+        [JsonProperty("message")]
+        public string Message = "";
+    }
+
+    // 处理完了消息，返回给控制方
+    public class SigOnProcessedMessage : SigBaseMessage
+    {
+        [JsonProperty("self_client_id")]
+        public string SelfClientId = "";
+        
+        [JsonProperty("controller_client_id")]
+        public string ControllerId = "";
+        
+        [JsonProperty("message")]
+        public string Message = "";
+    }
+    
     public static string MakeOnSigKnownErrorMessage(string token, int code)
     {
         return MakeOnSigErrorMessage(token, code, Errors.ErrorString(code));
@@ -565,6 +632,32 @@ public class SignalMessage
 
     public static string MakeOnCommandResponseMessage(SigOnCommandResponseMessage msg)
     {
+        return JsonConvert.SerializeObject(msg);
+    }
+
+    // 控制方发送了一个消息
+    public static string MakeSendMessage(string clientId, string controllerId, string message)
+    {
+        var msg = new SigSendMessage
+        {
+            SigName = SigNameSendMessage,
+            ClientId = clientId,
+            ControllerId = controllerId,
+            Message = message,
+        };
+        return JsonConvert.SerializeObject(msg);
+    }
+    
+    // 被控方响应完成后，返回消息
+    public static string MakeOnProcessedMessage(string selfClientId, string controllerId, string message)
+    {
+        var msg = new SigOnProcessedMessage
+        {
+            SigName = SigNameOnProcessedMessage,
+            SelfClientId = selfClientId,
+            ControllerId = controllerId,
+            Message = message,
+        };
         return JsonConvert.SerializeObject(msg);
     }
 }

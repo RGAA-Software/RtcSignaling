@@ -1,0 +1,9 @@
+﻿# port
+ListenPort = 40200
+
+# certificate
+#Certificate = "./Cert/certificate.pfx"
+Certificate = "./Cert/syxmsg.xyz.pfx"
+# password
+#Password = "Dolit@321"
+Password = "jt182l0laf75v1"

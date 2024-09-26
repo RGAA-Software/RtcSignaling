@@ -1,5 +1,7 @@
-﻿using RtcSignaling.Room;
+﻿using Nett;
+using RtcSignaling.Room;
 using RtcSignaling.User;
+using Serilog;
 
 namespace RtcSignaling;
 
@@ -8,7 +10,8 @@ public class AppContext
     private readonly ClientManager _clientManager;
     private readonly RoomManager _roomManager;
     private readonly UserDatabase _userDatabase;
-
+    private Settings.Settings _settings;
+    
     public AppContext()
     {
         _clientManager = new ClientManager(this);
@@ -22,6 +25,9 @@ public class AppContext
         {
             return;
         }
+
+        _settings = Toml.ReadFile("settings.toml").Get<Settings.Settings>();
+        Log.Information("settings: " + _settings.Dump());
     }
 
     public ClientManager GetClientManager()
@@ -37,5 +43,10 @@ public class AppContext
     public UserDatabase GetUserDatabase()
     {
         return _userDatabase;
+    }
+
+    public Settings.Settings GetSettings()
+    {
+        return _settings;
     }
 }
