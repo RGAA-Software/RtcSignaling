@@ -85,16 +85,28 @@ public class SignalProcessor
                     allowReSend = Convert.ToBoolean(value1);
                 }
 
-                var ipList = new List<string>();
+                var localIpList = new List<string>();
                 if (jsonObject.TryGetValue(SignalMessage.KeyLocalIps, out var v)) 
                 {
                     var ipArray = (JArray)v;
                     foreach (var ip in ipArray)
                     {
-                        ipList.Add(ip.ToString());
+                        localIpList.Add(ip.ToString());
                         Log.Information("Hello local ip: " + ip.ToString());
                     }
                 }
+
+                var wwwIpList = new List<string>();
+                if (jsonObject.TryGetValue(SignalMessage.KeyWwwIps, out var v1))
+                {
+                    var ipArray = (JArray)v1;
+                    foreach (var ip in ipArray)
+                    {
+                        wwwIpList.Add(ip.ToString());
+                        Log.Information("Hello local ip: " + ip.ToString());
+                    }
+                }
+                wwwIpList.Add(remoteIp);
                 
                 _onSigHelloCbk(new SignalMessage.SigHelloMessage
                 {
@@ -105,8 +117,8 @@ public class SignalProcessor
                     AllowReSend = allowReSend,
                     GroupId = groupId,
                     UserId = userId,
-                    LocalIps = ipList,
-                    RemoteIp = remoteIp,
+                    LocalIps = localIpList,
+                    WwwIps = wwwIpList,
                 }, wsHandler);
                 
             } else if (sigName == SignalMessage.SigNameCreateRoom)
@@ -197,6 +209,19 @@ public class SignalProcessor
                         ipList.Add(ip.ToString());
                     }
                 }
+                
+                var wwwIpList = new List<string>();
+                if (jsonObject.TryGetValue(SignalMessage.KeyWwwIps, out var v1))
+                {
+                    var ipArray = (JArray)v1;
+                    foreach (var ip in ipArray)
+                    {
+                        wwwIpList.Add(ip.ToString());
+                        Log.Information("Hello local ip: " + ip.ToString());
+                    }
+                }
+                wwwIpList.Add(remoteIp);
+                
                 // heart beat
                 _onSigHeartBeatCbk(new SignalMessage.SigHeartBeatMessage
                 {
@@ -207,6 +232,7 @@ public class SignalProcessor
                     GroupId = groupId,
                     UserId = userId,
                     LocalIps = ipList,
+                    WwwIps = wwwIpList,
                 });
                 
             } else if (sigName == SignalMessage.SigNameOfferSdp)
@@ -378,7 +404,7 @@ public class SignalProcessor
         _client.GroupId = msg.GroupId;
         _client.UserId = msg.UserId;
         _client.LocalIps = msg.LocalIps;
-        _client.RemoteIp = msg.RemoteIp;
+        _client.WwwIps = msg.WwwIps;
         _clientManager.AddClient(_client);
         _client.Notify(SignalMessage.MakeOnHelloMessage(_client.Token, _client.Id));
         

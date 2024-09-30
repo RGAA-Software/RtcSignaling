@@ -36,8 +36,8 @@ public class Client
     [JsonProperty("local_ips")]
     public List<string> LocalIps = [];
 
-    [JsonProperty("remote_ip")]
-    public string RemoteIp = ""; 
+    [JsonProperty("www_ips")]
+    public List<string> WwwIps = []; 
     
     private WebSocketHandler? _wsHandler = null;
 

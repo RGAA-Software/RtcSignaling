@@ -66,6 +66,7 @@ public class SignalMessage
     public const string KeyUserId = "user_id";
     public const string KeyCreator = "creator";
     public const string KeyLocalIps = "local_ips";
+    public const string KeyWwwIps = "www_ips";
     public const string KeyMessage = "message"; 
     
     public class SigBaseMessage
@@ -110,8 +111,8 @@ public class SignalMessage
         [JsonProperty("local_ips")]
         public List<string> LocalIps = [];
 
-        [JsonProperty("remote_ip")]
-        public string RemoteIp = "";
+        [JsonProperty("www_ips")]
+        public List<string> WwwIps = [];
     }
     
     // SigOnHelloMessage hello回复
@@ -326,6 +327,9 @@ public class SignalMessage
         
         [JsonProperty("local_ips")]
         public List<string> LocalIps = [];
+        
+        [JsonProperty("www_ips")]
+        public List<string> WwwIps = [];
     }
     
     // SigOnHeartBeatMessage 心跳回复
