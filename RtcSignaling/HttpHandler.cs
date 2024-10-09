@@ -47,8 +47,9 @@ public class HttpHandler : BaseHttpHandler
             var targetId = "";
             var randomPwd = "";
             var db = Context.GetUserDatabase();
+            var fixedIndices = true;
             while (true)
-            {
+            {   
                 // query user by hardware information
                 var user = db.FindUserByClientInfo(clientInfo);
                 // user exists
@@ -66,12 +67,14 @@ public class HttpHandler : BaseHttpHandler
                 }
                 
                 // generate user id
-                targetId = _idGenerator.Gen(clientInfo);
+                targetId = _idGenerator.Gen(clientInfo, fixedIndices);
+                Log.Information("GEN, targetId: " + targetId + ", clientInfo: " + clientInfo + ", fixedIndices: " + fixedIndices);
                 // query user by new id
                 user = Context.GetUserDatabase().FindUserById(targetId);
                 // already exists, generate a new one
                 if (user != null)
                 {
+                    fixedIndices = false;
                     continue;
                 }
 

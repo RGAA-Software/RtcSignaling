@@ -4,11 +4,12 @@ namespace RtcSignaling;
 
 public class ClientIdGenerator
 {
-    public string Gen(string info)
+    public string Gen(string info, bool fixedIndices)
     {
         var md5Str = Common.Md5String(info);
         var targetId = "";
-        var indices = GenIndices();
+        var indices = fixedIndices ? GetFixedIndices() : GenIndices();
+
         foreach (var idx in indices)
         {
             var c = md5Str[idx];
@@ -17,7 +18,12 @@ public class ClientIdGenerator
         return targetId;
     }
 
-    private List<int> GenIndices()
+    private static List<int> GetFixedIndices()
+    {
+        return [2, 7, 13, 15, 19, 23, 26, 29, 31];
+    }
+    
+    private static List<int> GenIndices()
     {
         var values = new List<int>();
         for (var i = 0; i < 9; i++)

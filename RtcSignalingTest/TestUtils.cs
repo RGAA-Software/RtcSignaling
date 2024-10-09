@@ -11,7 +11,8 @@ public class Tests
     [Test]
     public void TestGenClientId()
     {
-        Console.WriteLine("ID: " + new ClientIdGenerator().Gen("xxxxxx"));
+        Console.WriteLine("ID: " + new ClientIdGenerator().Gen("xxxxxx", true));
+        Console.WriteLine("ID: " + new ClientIdGenerator().Gen("xxxxxx", false));
     }
     
     [Test]
