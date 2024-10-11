@@ -103,7 +103,7 @@ public class SignalProcessor
                     foreach (var ip in ipArray)
                     {
                         wwwIpList.Add(ip.ToString());
-                        Log.Information("Hello local ip: " + ip.ToString());
+                        Log.Information("Hello www ip: " + ip.ToString());
                     }
                 }
                 wwwIpList.Add(remoteIp);
@@ -214,10 +214,13 @@ public class SignalProcessor
                 if (jsonObject.TryGetValue(SignalMessage.KeyWwwIps, out var v1))
                 {
                     var ipArray = (JArray)v1;
-                    foreach (var ip in ipArray)
+                    foreach (var ipToken in ipArray)
                     {
-                        wwwIpList.Add(ip.ToString());
-                        Log.Information("Hello local ip: " + ip.ToString());
+                        var ip = ipToken.ToString();
+                        if (ip.Length > 0)
+                        {
+                            wwwIpList.Add(ip);   
+                        }
                     }
                 }
                 wwwIpList.Add(remoteIp);
