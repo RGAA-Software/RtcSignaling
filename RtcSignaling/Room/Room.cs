@@ -32,6 +32,8 @@ public class Room
                 // client.Close();
                 // _clients.Remove(client.Id);
             }
+
+            client.RoomId = this.Id;
             _clients[client.Id] = client;
 
             _alreadyUsed = true;

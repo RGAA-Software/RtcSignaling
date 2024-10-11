@@ -57,13 +57,22 @@ public class WebSocketHandler
         {
             Log.Warning("Client closed: " + e.Message + ", ");
         }
-
-        var msg = "End of websocket loop, client id: " + (_client != null ? _client.Id : "");
-        Log.Information(msg);
-        Console.Write(msg);
+        
         if (_client?.Id != null)
         {
+            var msg = "End of websocket loop, client id: " +  _client.Id + ", roomId: " + _client.RoomId + ", token: " + _client.Token + "\n";
+            Log.Information(msg);
+            Console.Write(msg);
             _appContext.GetClientManager().RemoveClient(_client.Id);
+            var roomMgr = _appContext.GetRoomManager();
+            var room = roomMgr.FindRoomById(_client.RoomId);
+            if (room == null)
+            {
+                Log.Information("Exit client not in a room");
+                return;
+            }
+            roomMgr.RemoveClientInRoom(_client.RoomId, _client.Id);
+            room.NotifyExcept(_client.Id, SignalMessage.MakeOnRemoteClientLeftMessage(_client.Token, room, _client.Id));
         }
     }
 
