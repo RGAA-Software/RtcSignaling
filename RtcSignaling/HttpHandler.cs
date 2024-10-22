@@ -35,7 +35,7 @@ public class HttpHandler : BaseHttpHandler
         {
             string? hardware = context.Request.Query["hardware"];
             string? platform = context.Request.Query["platform"];
-            var clientInfo = (platform == null ? platform:"") + hardware!;
+            var clientInfo = hardware!;
             
             if (hardware == null || hardware.Length <= 0)
             {

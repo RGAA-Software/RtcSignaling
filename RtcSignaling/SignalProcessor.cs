@@ -44,6 +44,7 @@ public class SignalProcessor
             var jsonObject = JsonConvert.DeserializeObject<Dictionary<string, object>>(message);
             if (jsonObject == null)
             {
+                Log.Error("Deserialize failed, message: " + message);
                 return false;
             }
             

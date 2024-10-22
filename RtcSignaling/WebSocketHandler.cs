@@ -35,6 +35,11 @@ public class WebSocketHandler
                         var message = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
                         sb.Append(message);
                     }
+                    else if (result.MessageType == WebSocketMessageType.Text && buffer.Array != null) 
+                    {
+                        var message = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
+                        sb.Append(message);
+                    }
                     else if (result.MessageType == WebSocketMessageType.Close)
                     {
                         Console.WriteLine("Close ws");
