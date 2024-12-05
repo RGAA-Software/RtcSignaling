@@ -51,7 +51,7 @@ public class WebSocketHandler
                         //Log.Information("type: " + result.MessageType + ", count: " + message.Length);
                         if (!_processor.ParseMessage(message, this, remoteIp))
                         {
-                            Log.Error("Parse failed");
+                            Log.Error("Parse failed:" + message);
                         }
                         break;
                     }

@@ -18,6 +18,17 @@ Log.Logger = new LoggerConfiguration()
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors();
+// builder.Services.AddCors(options =>
+// {
+//     options.AddDefaultPolicy(b =>
+//     {
+//         b.AllowAnyOrigin()
+//             .AllowAnyMethod()
+//             .AllowAnyHeader();
+//     });
+// });
+
 // app context
 var appContext = new AppContext();
 appContext.Init();
@@ -40,6 +51,12 @@ builder.WebHost.ConfigureKestrel(options =>
 });
 
 var app = builder.Build();
+
+app.UseCors(options => options
+    .AllowAnyHeader()               // 确保策略允许任何标头
+    .AllowAnyMethod()               // 确保策略允许任何方法
+    .SetIsOriginAllowed(o => true)  // 设置指定的isOriginAllowed为基础策略
+    .AllowCredentials());           // 将策略设置为允许凭据。
 
 // http handler
 var httpHandler = new HttpHandler(appContext, app);
