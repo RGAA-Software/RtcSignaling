@@ -11,8 +11,8 @@ public class UserDatabase
     private IMongoDatabase _mongoDatabase;
     private IMongoCollection<User> _userCollection;
 
-    private const string CollectionUser = "user";
-    private const string DatabaseName = "signaling";
+    private const string CollectionUser = "tc_user";
+    private const string DatabaseName = "tc_signaling";
 
     private const string KeyUid = "uid";
     private const string KeyClientInfo = "client_info";
