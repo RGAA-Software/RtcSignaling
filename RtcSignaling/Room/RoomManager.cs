@@ -136,7 +136,7 @@ public class RoomManager(AppContext ctx)
         return GetActiveRoomsByGroupId(groupId).Count;
     }
 
-    public Dictionary<string, List<Room>> GetActiveRoomsByGroupIdAndClassifyByClientId(string groupId)
+    public Dictionary<string, List<Room>> GetActiveRoomsByGroupIdAndClassifyByCreator(string groupId)
     {
         var result = new Dictionary<string, List<Room>>();
         var rooms = GetActiveRoomsByGroupId(groupId);
@@ -155,7 +155,7 @@ public class RoomManager(AppContext ctx)
 
     public int CountActiveRoomsByGroupIdAndClassifyByClientId(string groupId)
     {
-        return GetActiveRoomsByGroupIdAndClassifyByClientId(groupId).Count;
+        return GetActiveRoomsByGroupIdAndClassifyByCreator(groupId).Count;
     }
 
     public List<Room> GetRoomsCreatedByClientId(string clientId)

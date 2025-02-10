@@ -18,6 +18,14 @@ Log.Logger = new LoggerConfiguration()
 
 var builder = WebApplication.CreateBuilder(args);
 
+// app context
+var appContext = new AppContext();
+appContext.Init();
+
+// system monitor
+var systemMonitor = new SystemMonitor(appContext);
+
+builder.WebHost.UseUrls("http://0.0.0.0:" + appContext.GetSettings().ListenPort);
 builder.Services.AddCors();
 // builder.Services.AddCors(options =>
 // {
@@ -29,26 +37,20 @@ builder.Services.AddCors();
 //     });
 // });
 
-// app context
-var appContext = new AppContext();
-appContext.Init();
-
-// system monitor
-var systemMonitor = new SystemMonitor(appContext);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.WebHost.ConfigureKestrel(options =>
-{
-    var settings = appContext.GetSettings();
-    options.Listen(IPAddress.Any, settings.ListenPort, listenOptions =>
-    {
-        listenOptions.UseHttps(settings.Certificate, settings.Password);
-        //listenOptions.UseHttps("./Cert/certificate.pfx", "Dolit@321");
-    });
-});
+// builder.WebHost.ConfigureKestrel(options =>
+// {
+//     var settings = appContext.GetSettings();
+//     options.Listen(IPAddress.Any, settings.ListenPort, listenOptions =>
+//     {
+//         listenOptions.UseHttps(settings.Certificate, settings.Password);
+//         //listenOptions.UseHttps("./Cert/certificate.pfx", "Dolit@321");
+//     });
+// });
 
 var app = builder.Build();
 

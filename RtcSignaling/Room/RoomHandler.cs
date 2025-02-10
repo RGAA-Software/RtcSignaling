@@ -71,7 +71,7 @@ public class RoomHandler : BaseHttpHandler
                 return Ret();
             }
 
-            var rooms = Context.GetRoomManager().GetActiveRoomsByGroupIdAndClassifyByClientId(groupId!);
+            var rooms = Context.GetRoomManager().GetActiveRoomsByGroupIdAndClassifyByCreator(groupId!);
             ResponseOk(context, new Dictionary<string, object>
             {
                 {"rooms", rooms}
